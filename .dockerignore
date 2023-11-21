@@ -8,3 +8,4 @@ OLD*
 .venv
 .aider.*
 build
+.vscode
