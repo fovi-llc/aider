@@ -18,6 +18,7 @@ from tree_sitter_languages import get_language, get_parser
 from aider import models
 
 from .dump import dump  # noqa: F402
+from .io import InputOutput  # noqa: F402
 
 Tag = namedtuple("Tag", "rel_fname fname line name kind".split())
 
@@ -176,6 +177,7 @@ class RepoMap:
             yield result
 
         if "ref" in saw:
+            # print("saw ref")
             return
         if "def" not in saw:
             return
@@ -238,6 +240,7 @@ class RepoMap:
                 chat_rel_fnames.add(rel_fname)
 
             tags = list(self.get_tags(fname, rel_fname))
+            # dump(tags)
             if tags is None:
                 continue
 
@@ -258,7 +261,7 @@ class RepoMap:
             references = dict((k, list(v)) for k, v in defines.items())
 
         idents = set(defines.keys()).intersection(set(references.keys()))
-
+        # dump(idents)
         G = nx.MultiDiGraph()
 
         for ident in idents:
@@ -301,6 +304,7 @@ class RepoMap:
         for (fname, ident), rank in ranked_definitions:
             # print(f"{rank:.03f} {fname} {ident}")
             if fname in chat_rel_fnames:
+                # print("skipping chat file")
                 continue
             ranked_tags += list(definitions.get((fname, ident), []))
 
@@ -325,6 +329,7 @@ class RepoMap:
             other_fnames = list()
 
         ranked_tags = self.get_ranked_tags(chat_fnames, other_fnames)
+        # dump(ranked_tags)
         num_tags = len(ranked_tags)
 
         lower_bound = 0
@@ -419,15 +424,19 @@ if __name__ == "__main__":
     fnames = sys.argv[1:]
 
     chat_fnames = []
-    other_fnames = []
+    # other_fnames = ['aider/coders/base_coder.py']
+    # other_fnames = ['tests/test_coder.py']
+    other_fnames = find_src_files('aider')
     for fname in sys.argv[1:]:
         if Path(fname).is_dir():
             chat_fnames += find_src_files(fname)
         else:
             chat_fnames.append(fname)
-
-    rm = RepoMap(root=".")
+    dump(chat_fnames)
+    dump(other_fnames)
+    rm = RepoMap(root=".", io=InputOutput())
     repo_map = rm.get_ranked_tags_map(chat_fnames, other_fnames)
 
+    print(type(repo_map))
     dump(len(repo_map))
-    print(repo_map)
+    dump(repo_map)
