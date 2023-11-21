@@ -12,6 +12,8 @@ class LSPClient:
             "extract_method": "pylsp_rope.refactor.extract.method",
             "extract_variable": "pylsp_rope.refactor.extract.variable",
             "organize_imports": "pylsp_rope.source.organize_import",
+            "extract_method": "pylsp_rope.refactor.extract.method",
+            "extract_variable": "pylsp_rope.refactor.extract.variable",
             # Add more mappings here as needed
         }
 
@@ -81,6 +83,16 @@ class LSPClient:
     def extract_method(self, path, range_start, range_end, global_=False, similar=False):
         command = self.command_mapping["extract_method"]
         additional_args = {"global_": global_, "similar": similar}
+        return self.execute_command(command, self.document_uri(path), range_start, range_end, additional_args)
+
+    def extract_variable(self, path, range_start, range_end, variable_name):
+        command = self.command_mapping["extract_variable"]
+        additional_args = {"name": variable_name}
+        return self.execute_command(command, self.document_uri(path), range_start, range_end, additional_args)
+
+    def extract_method(self, path, range_start, range_end, method_name):
+        command = self.command_mapping["extract_method"]
+        additional_args = {"name": method_name}
         return self.execute_command(command, self.document_uri(path), range_start, range_end, additional_args)
 
     def close(self):
