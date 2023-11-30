@@ -427,7 +427,7 @@ if __name__ == "__main__":
     # other_fnames = ['aider/coders/base_coder.py']
     # other_fnames = ['tests/test_coder.py']
     other_fnames = find_src_files('aider')
-    for fname in sys.argv[1:]:
+    for fname in fnames:
         if Path(fname).is_dir():
             chat_fnames += find_src_files(fname)
         else:

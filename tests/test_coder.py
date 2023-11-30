@@ -8,6 +8,7 @@ import openai
 
 from aider import models
 from aider.coders import Coder
+from aider.coders.base_coder import ExhaustedContextWindow
 from aider.dump import dump  # noqa: F401
 from aider.io import InputOutput
 from tests.utils import ChdirTemporaryDirectory, GitTemporaryDirectory
@@ -348,6 +349,23 @@ class TestCoder(unittest.TestCase):
             # Call the run method and assert that InvalidRequestError is raised
             with self.assertRaises(openai.error.InvalidRequestError):
                 coder.run(with_message="hi")
+
+    # Added this test to see if RepoMap will include references to classes.
+    # It does not (i.e. neither get_repo_map nor get_ranked_tags_map will include ExhaustedContextWindow
+    # in the defs from base_coder.py for this file).  Pretty sure the issue is that the scm query for
+    # Python does not match the reference to ExhaustedContextWindow in the assertRaises call.
+    def test_send_new_user_message(self):
+        with ChdirTemporaryDirectory():
+            # Mock the IO object
+            mock_io = MagicMock()
+
+            # Initialize the Coder object with the mocked IO and mocked repo
+            coder = Coder.create(models.GPT4, None, mock_io)
+
+            # Call the run method and assert that InvalidRequestError is raised
+            with self.assertRaises(ExhaustedContextWindow):
+                coder.send_new_user_message(inp="hi")
+
 
     def test_new_file_edit_one_commit(self):
         """A new file shouldn't get pre-committed before the GPT edit commit"""
