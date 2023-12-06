@@ -46,25 +46,51 @@ from rope.base.change import Change, ChangeSet, ChangeContents
 
 from three_merge import merge
 
+import argparse
+import os
+
 streaming = True
 do_commit = True
 undo_commit = True
 
-fnames = sys.argv[1:]
-# fnames = ['tests/resample.py']
-# fnames = ['aider/coders/base_coder.py']
-chat_fnames = []
-# other_fnames = ['aider/coders/base_coder.py']
-# other_fnames = ['tests/test_coder.py']
-other_fnames = find_src_files('aider')
-for fname in fnames:
-    if Path(fname).is_dir():
-        chat_fnames += find_src_files(fname)
-    else:
-        chat_fnames.append(fname)
+# Create the parser
+parser = argparse.ArgumentParser(description="Process some files.")
+
+# Add the arguments
+parser.add_argument('file', type=str, help='The file to refactor')
+parser.add_argument('--repo_dir', type=str, default=os.getcwd(), help='Project source root (defaults to current directory)')
+parser.add_argument('--no_streaming', action='store_true', help='Disable streaming chat output')
+parser.add_argument('--no_commit', action='store_true', help='Disable commit')
+parser.add_argument('--no_undo', action='store_true', help='Disable undo after commit')
 
 
-rm = RepoMap(root=".", io=InputOutput(), main_model=models.Model.create('gpt-4-1106-preview'))
+# Parse the arguments
+args = parser.parse_args()
+
+streaming = not args.no_streaming
+do_commit = not args.no_commit
+undo_commit = not args.no_undo
+
+fname = args.file
+repo_dir = args.repo_dir
+
+# Check if the file exists
+if not os.path.isfile(fname):
+    print(f"The file {fname} does not exist.")
+    exit(1)
+
+# Check if the directory exists
+if not os.path.isdir(repo_dir):
+    print(f"The directory {repo_dir} does not exist.")
+    exit(1)
+
+if not fname:
+    print("Usage: python extract.py (--no-streaming) (--no-commit) (--no-undo-commit) <file-to-refactor> <project-root (default '.')>")
+    sys.exit(1)
+
+other_fnames = find_src_files(repo_dir)
+
+rm = RepoMap(root=repo_dir, io=InputOutput(), main_model=models.Model.create('gpt-4-1106-preview'))
 
 Ref = namedtuple("Ref", ['tag', 'name', 'line', 'node'])
 
@@ -154,7 +180,7 @@ class CodeTreeInfo:
             yield Ref(tag=tag, name=node.text.decode("utf-8"), line=node.start_point[0], node=node)
 
 
-code_info = CodeTreeInfo(rm=rm, fname=fnames[0])
+code_info = CodeTreeInfo(rm=rm, fname=fname)
 # dump(code_info)
 
 
