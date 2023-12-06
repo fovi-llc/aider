@@ -47,22 +47,17 @@ from rope.base.change import Change, ChangeSet, ChangeContents
 from three_merge import merge
 
 import argparse
-import os
 
-streaming = True
-do_commit = True
-undo_commit = True
 
 # Create the parser
 parser = argparse.ArgumentParser(description="Process some files.")
 
 # Add the arguments
 parser.add_argument('file', type=str, help='The file to refactor')
-parser.add_argument('--repo_dir', type=str, default=os.getcwd(), help='Project source root (defaults to current directory)')
-parser.add_argument('--no_streaming', action='store_true', help='Disable streaming chat output')
-parser.add_argument('--no_commit', action='store_true', help='Disable commit')
-parser.add_argument('--no_undo', action='store_true', help='Disable undo after commit')
-
+parser.add_argument('--repo_dir', type=str, default=os.getcwd(), help='The directory to process (defaults to current directory)')
+parser.add_argument('--no_streaming', action='store_true', help='Disable streaming')
+parser.add_argument('--no_commit', action='store_true', help='Disable commit (i.e. update file)')
+parser.add_argument('--no_undo', action='store_true', help='Disable undo commit')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -84,11 +79,6 @@ if not os.path.isdir(repo_dir):
     print(f"The directory {repo_dir} does not exist.")
     exit(1)
 
-if not fname:
-    print("Usage: python extract.py (--no-streaming) (--no-commit) (--no-undo-commit) <file-to-refactor> <project-root (default '.')>")
-    sys.exit(1)
-
-other_fnames = find_src_files(repo_dir)
 
 rm = RepoMap(root=repo_dir, io=InputOutput(), main_model=models.Model.create('gpt-4-1106-preview'))
 
