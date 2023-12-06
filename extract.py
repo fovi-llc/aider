@@ -47,7 +47,7 @@ from rope.base.change import Change, ChangeSet, ChangeContents
 from three_merge import merge
 
 streaming = True
-do_commit = False
+do_commit = True
 undo_commit = True
 
 fnames = sys.argv[1:]
@@ -421,6 +421,7 @@ def merge_change_list(resource, change_list: list[Change]) -> Change:
             source = merge(source, change.new_contents, base)
     return ChangeContents(resource, source)
 
+
 def merge_changes(resource, change_list: list[Change], source: str, base: str) -> str:
     for change in change_list:
         if isinstance(change, ChangeSet):
@@ -429,13 +430,21 @@ def merge_changes(resource, change_list: list[Change], source: str, base: str) -
             source = merge(source, change.new_contents, base)
     return source
 
-multiple_changes = merge_change_list(code_info_resource, code_info_changes_list)
-print(multiple_changes.get_description())
 
-if do_commit:
-    code_info_project.do(multiple_changes)
-    if undo_commit:
-        input("Press Enter to undo commit")
-        code_info_project.history.undo()
+if code_info_changes_list:
+    if len(code_info_changes_list) == 1:
+        the_change = code_info_changes_list[0]
+    else:
+        the_change = merge_change_list(code_info_resource, code_info_changes_list)
 
+    print(the_change.get_description())
+
+    if do_commit:
+        print("File updated.")
+        code_info_project.do(the_change)
+        if undo_commit:
+            input("Press Enter to undo commit.")
+            code_info_project.history.undo()
+else:
+    print("No changes to commit")
 
