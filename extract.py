@@ -1,22 +1,15 @@
 #!python
-# %pip install -qU aider
-# %pip install -qU intervaltree
-# %pip install -qU llama-index
-# %pip install -qU rope three-merge
-# %pip install --upgrade httpx httpcore
-# %pip install -qU python-dotenv
+# %pip install -qU aider intervaltree rope llama-index httpx httpcore three-merge
 
-# %load_ext dotenv
-# %dotenv
-
+import argparse
 import os
-import sys
 from pathlib import Path
+import sys
 
 from aider.dump import dump
 from aider.io import InputOutput
 from aider import models
-from aider.repomap import RepoMap, Tag, find_src_files
+from aider.repomap import RepoMap
 
 import intervaltree as it
 import tree_sitter as ts
@@ -29,7 +22,6 @@ from dataclasses import dataclass
 
 from llama_index.tools import FunctionTool
 from llama_index.agent import OpenAIAssistantAgent
-from llama_index.callbacks import trace_method
 
 from llama_index.agent import OpenAIAgent
 from llama_index.llms import OpenAI
@@ -46,8 +38,10 @@ from rope.base.change import Change, ChangeSet, ChangeContents
 
 from three_merge import merge
 
-import argparse
 
+if 'OPENAI_API_KEY' not in os.environ:
+    print("Please set OPENAI_API_KEY environment variable")
+    sys.exit(1)
 
 # Create the parser
 parser = argparse.ArgumentParser(description="Process some files.")
