@@ -269,7 +269,7 @@ class RepoMap:
             return
 
         query_scm = get_scm_fname(lang)
-        if not query_scm.exists():
+        if (query_scm is None) or not query_scm.exists():
             return
         query_scm = query_scm.read_text()
 
@@ -734,7 +734,7 @@ def get_scm_fname(lang):
     # Load the tags queries
     try:
         return resources.files(__package__).joinpath("queries", f"tree-sitter-{lang}-tags.scm")
-    except KeyError:
+    except (KeyError, TypeError):
         return
 
 
@@ -749,7 +749,7 @@ def get_supported_languages_md():
 
     for lang, ext in data:
         fn = get_scm_fname(lang)
-        repo_map = "✓" if Path(fn).exists() else ""
+        repo_map = "✓" if (fn is not None) and Path(fn).exists() else ""
         linter_support = "✓"
         res += f"| {lang:20} | {ext:20} | {repo_map:^8} | {linter_support:^6} |\n"
 
